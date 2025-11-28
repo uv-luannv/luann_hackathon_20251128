@@ -1,36 +1,61 @@
 <template>
   <div class="w-full">
     <!-- ヘッダー -->
-    <div class="mb-6 flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
-      <div class="flex gap-2">
-        <Button @click="showCreateDialog = true" class="gap-2">
-          <Plus class="size-4" />
-          クイズセット作成
-        </Button>
+    <div class="mb-8">
+      <!-- Hero Section -->
+      <div class="bg-gradient-primary rounded-2xl p-8 mb-6 text-white">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 class="text-3xl font-bold mb-2">クイズアプリ</h1>
+            <p class="text-white/90 text-lg">知識を試し、学びを深めよう</p>
+            <div class="flex items-center gap-6 mt-4 text-sm text-white/80">
+              <div class="flex items-center gap-2">
+                <BookOpen class="size-4" />
+                <span>{{ quizStore.totalQuizSets || 0 }} クイズセット</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <Users class="size-4" />
+                <span>{{ authStore.currentUser?.name || 'ゲスト' }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="shrink-0">
+            <Button @click="showCreateDialog = true" class="bg-white/20 border-white/30 text-white hover:bg-white/30 gap-2">
+              <Plus class="size-4" />
+              クイズセット作成
+            </Button>
+          </div>
+        </div>
       </div>
-      
-      <!-- 検索・フィルタ -->
-      <div class="flex flex-col sm:flex-row gap-2">
-        <div class="relative w-full sm:w-64">
-          <Input
-            v-model="quizStore.searchQuery"
-            placeholder="クイズセットを検索..."
-            class="pr-10"
-            @input="quizStore.setSearchQuery($event.target.value)"
-          />
-          <Search class="absolute right-3 top-1/2 transform -translate-y-1/2 size-4 text-muted-foreground" />
+
+      <!-- 検索・フィルタセクション -->
+      <div class="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+        <div class="text-lg font-semibold text-foreground">
+          利用可能なクイズセット
         </div>
         
-        <select
-          v-model="quizStore.categoryFilter"
-          @change="quizStore.setCategoryFilter(($event.target as HTMLSelectElement).value)"
-          class="rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-        >
-          <option value="">全カテゴリ</option>
-          <option v-for="(category, index) in quizStore.availableCategories" :key="index" :value="category">
-            {{ category }}
-          </option>
-        </select>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="relative w-full sm:w-64">
+            <Input
+              v-model="quizStore.searchQuery"
+              placeholder="クイズセットを検索..."
+              class="pr-10 border-muted-foreground/20 focus:border-primary"
+              @input="quizStore.setSearchQuery($event.target.value)"
+            />
+            <Search class="absolute right-3 top-1/2 transform -translate-y-1/2 size-4 text-muted-foreground" />
+          </div>
+          
+          <select
+            v-model="quizStore.categoryFilter"
+            @change="quizStore.setCategoryFilter(($event.target as HTMLSelectElement).value)"
+            class="rounded-md border border-muted-foreground/20 bg-background px-3 py-2 text-sm ring-offset-background focus:border-primary focus:ring-2 focus:ring-primary/20"
+          >
+            <option value="">全カテゴリ</option>
+            <option v-for="(category, index) in quizStore.availableCategories" :key="index" :value="category">
+              {{ category }}
+            </option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -38,54 +63,96 @@
     <ErrorMessage v-if="quizStore.error" :message="quizStore.error" @dismiss="quizStore.clearError()" />
 
     <!-- ローディング表示 -->
-    <div v-if="quizStore.loading" class="flex justify-center py-8">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>
+    <LoadingSkeleton v-if="quizStore.loading" :card-count="6" :show-hero="false" />
 
     <!-- クイズセット一覧 -->
-    <div v-else class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div v-else class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       <div
         v-for="quizSet in quizStore.paginatedQuizSets"
         :key="quizSet.id"
-        class="card-container p-6 hover:shadow-md transition-shadow duration-200"
+        class="card-enhanced group cursor-pointer interactive"
+        @click="handleTakeQuiz(quizSet.id)"
       >
-        <div class="flex flex-col h-full">
+        <!-- カード上部のグラデーション -->
+        <div class="h-2 bg-gradient-primary"></div>
+        
+        <div class="p-6">
           <!-- ヘッダー -->
-          <div class="flex items-start justify-between mb-3">
+          <div class="flex items-start justify-between mb-4">
             <div class="flex-1">
-              <h3 class="font-semibold text-lg mb-1 line-clamp-2">{{ quizSet.title }}</h3>
+              <div class="flex items-center gap-2 mb-2">
+                <h3 class="font-bold text-xl line-clamp-2 group-hover:text-primary transition-colors">
+                  {{ quizSet.title }}
+                </h3>
+                <Badge :variant="quizSet.is_public ? 'default' : 'outline'" class="text-xs shrink-0">
+                  {{ quizSet.is_public ? '公開' : '非公開' }}
+                </Badge>
+              </div>
               <Badge v-if="quizSet.category" variant="secondary" class="text-xs">
+                <BookOpen class="size-3 mr-1" />
                 {{ quizSet.category }}
               </Badge>
             </div>
-            <div class="flex items-center gap-1">
-              <Badge :variant="quizSet.is_public ? 'default' : 'outline'" class="text-xs">
-                {{ quizSet.is_public ? '公開' : '非公開' }}
-              </Badge>
-              <div class="flex">
-                <Button variant="ghost" size="sm" @click="handleViewQuizSet(quizSet.id)" class="size-8 p-0">
-                  <Eye class="size-4" />
-                </Button>
-                <Button variant="ghost" size="sm" @click="handleEditQuizSet(quizSet)" class="size-8 p-0">
-                  <Edit class="size-4" />
-                </Button>
-                <Button variant="ghost" size="sm" @click="handleTogglePublish(quizSet)" class="size-8 p-0">
-                  <Globe class="size-4" />
-                </Button>
-                <Button variant="ghost" size="sm" @click="handleDeleteQuizSet(quizSet)" class="size-8 p-0 text-destructive">
-                  <Trash2 class="size-4" />
-                </Button>
-              </div>
+            
+            <!-- アクションボタン -->
+            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                @click.stop="handleViewQuizSet(quizSet.id)" 
+                class="size-8 p-0"
+              >
+                <Eye class="size-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                @click.stop="handleEditQuizSet(quizSet)" 
+                class="size-8 p-0"
+              >
+                <Edit class="size-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                @click.stop="handleTogglePublish(quizSet)" 
+                class="size-8 p-0"
+              >
+                <Globe class="size-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                @click.stop="handleDeleteQuizSet(quizSet)" 
+                class="size-8 p-0 text-destructive hover:text-destructive"
+              >
+                <Trash2 class="size-4" />
+              </Button>
             </div>
           </div>
 
           <!-- 説明文 -->
-          <p v-if="quizSet.description" class="text-sm text-muted-foreground mb-4 line-clamp-3 flex-1">
+          <p v-if="quizSet.description" class="text-sm text-muted-foreground mb-6 line-clamp-3">
             {{ quizSet.description }}
           </p>
+          <div v-else class="mb-6">
+            <span class="text-xs text-muted-foreground italic">説明なし</span>
+          </div>
+
+          <!-- 統計情報 -->
+          <div class="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
+            <div class="flex items-center gap-1">
+              <Users class="size-4" />
+              <span>{{ quizSet.rating_count || 0 }}人が挑戦</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <Calendar class="size-4" />
+              <span>{{ formatDate(quizSet.created_at) }}</span>
+            </div>
+          </div>
 
           <!-- レーティング -->
-          <div class="mb-4">
+          <div class="mb-6">
             <StarRating
               :value="quizSet.average_rating"
               :rating-count="quizSet.rating_count"
@@ -98,10 +165,21 @@
           </div>
 
           <!-- フッター -->
-          <div class="flex items-center justify-between text-xs text-muted-foreground mt-auto">
-            <span>{{ formatDate(quizSet.created_at) }}</span>
-            <Button @click="handleTakeQuiz(quizSet.id)" size="sm" variant="outline">
-              クイズ開始
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center">
+                <User class="size-4 text-white" />
+              </div>
+              <span class="text-sm font-medium">{{ quizSet.author_name || 'Unknown' }}</span>
+            </div>
+            
+            <Button 
+              @click.stop="handleTakeQuiz(quizSet.id)" 
+              size="sm" 
+              class="bg-gradient-primary hover:opacity-90 transition-opacity font-medium"
+            >
+              <Play class="size-4 mr-1" />
+              開始
             </Button>
           </div>
         </div>
@@ -167,6 +245,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import ErrorMessage from '@/components/common/ErrorMessage.vue';
+import LoadingSkeleton from '@/components/common/LoadingSkeleton.vue';
 import QuizSetCreateDialog from './QuizSetCreateDialog.vue';
 import QuizSetEditDialog from './QuizSetEditDialog.vue';
 import StarRating from './StarRating.vue';
@@ -178,7 +257,12 @@ import {
   Eye, 
   Edit, 
   Globe, 
-  Trash2 
+  Trash2,
+  BookOpen,
+  Users,
+  Calendar,
+  User,
+  Play
 } from 'lucide-vue-next';
 
 // State

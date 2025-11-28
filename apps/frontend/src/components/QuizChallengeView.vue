@@ -1,28 +1,62 @@
 <template>
   <div class="container max-w-4xl mx-auto p-6">
     <!-- ヘッダー -->
-    <div class="mb-6">
-      <Button variant="ghost" @click="goBack" class="mb-4">
+    <div class="mb-8">
+      <Button variant="ghost" @click="goBack" class="mb-6 hover-lift">
         <ArrowLeft class="size-4 mr-2" />
         戻る
       </Button>
       
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-bold mb-1">
-            {{ challengeStore.currentChallenge?.quiz_set_title || 'クイズチャレンジ' }}
-          </h1>
-          <div class="flex items-center gap-4 text-sm text-muted-foreground">
-            <span>進捗: {{ challengeStore.currentAnswerCount }} / {{ challengeStore.totalQuestions }}</span>
-            <span>完了率: {{ challengeStore.progressPercentage }}%</span>
+      <!-- Hero section with gradient -->
+      <div class="bg-gradient-primary rounded-2xl p-6 text-white mb-6">
+        <div class="flex items-center justify-between">
+          <div class="flex-1">
+            <h1 class="text-2xl font-bold mb-2">
+              {{ challengeStore.currentChallenge?.quiz_set_title || 'クイズチャレンジ' }}
+            </h1>
+            <div class="flex items-center gap-6 text-white/90">
+              <div class="flex items-center gap-2">
+                <CheckCircle class="size-4" />
+                <span>{{ challengeStore.currentAnswerCount }} / {{ challengeStore.totalQuestions }} 回答済み</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <Clock class="size-4" />
+                <span>{{ challengeStore.progressPercentage }}% 完了</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 円形進捗インジケーター -->
+          <div class="relative w-20 h-20">
+            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 32 32">
+              <circle
+                cx="16" cy="16" r="14"
+                fill="none"
+                stroke="rgba(255, 255, 255, 0.3)"
+                stroke-width="2"
+              />
+              <circle
+                cx="16" cy="16" r="14"
+                fill="none"
+                stroke="white"
+                stroke-width="2"
+                stroke-dasharray="87.96"
+                :stroke-dashoffset="87.96 - (challengeStore.progressPercentage / 100) * 87.96"
+                class="transition-all duration-500 ease-out"
+                stroke-linecap="round"
+              />
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span class="text-lg font-bold">{{ challengeStore.progressPercentage }}%</span>
+            </div>
           </div>
         </div>
         
-        <!-- 進捗バー -->
-        <div class="w-32">
-          <div class="bg-muted rounded-full h-2 mb-1">
+        <!-- プログレスバー -->
+        <div class="mt-4">
+          <div class="bg-white/20 rounded-full h-2">
             <div 
-              class="bg-primary rounded-full h-2 transition-all duration-300"
+              class="bg-white rounded-full h-2 transition-all duration-500 ease-out"
               :style="{ width: `${challengeStore.progressPercentage}%` }"
             ></div>
           </div>
@@ -47,59 +81,110 @@
       <div
         v-for="(question, index) in challengeStore.currentChallenge.questions"
         :key="question.id"
-        class="card-container p-6"
+        class="card-enhanced animate-slide-up interactive"
+        :class="`stagger-${Math.min(index + 1, 5)}`"
       >
-        <!-- 質問番号とテキスト -->
-        <div class="mb-4">
-          <div class="flex items-center gap-2 mb-2">
-            <Badge variant="outline">質問 {{ index + 1 }}</Badge>
-            <span v-if="challengeStore.getAnswer(question.id)" class="text-green-600 text-sm">✓ 回答済み</span>
+        <!-- 質問ヘッダー -->
+        <div class="p-6 border-b border-border/50">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-primary text-white text-sm font-bold">
+              {{ index + 1 }}
+            </div>
+            <Badge 
+              :variant="challengeStore.getAnswer(question.id) ? 'default' : 'outline'" 
+              class="gap-1"
+            >
+              <CheckCircle v-if="challengeStore.getAnswer(question.id)" class="size-3" />
+              <Circle v-else class="size-3" />
+              {{ challengeStore.getAnswer(question.id) ? '回答済み' : '未回答' }}
+            </Badge>
           </div>
-          <h3 class="text-lg font-medium">{{ question.question_text }}</h3>
+          <h3 class="text-lg font-semibold leading-relaxed">{{ question.question_text }}</h3>
         </div>
 
         <!-- 選択肢 -->
-        <div class="space-y-2">
+        <div class="p-6 space-y-3">
           <label
-            v-for="choice in question.choices"
+            v-for="(choice, choiceIndex) in question.choices"
             :key="choice.id"
-            class="flex items-center p-3 rounded-lg border cursor-pointer transition-colors hover:bg-muted/50"
+            class="flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 hover-lift group"
             :class="{
-              'border-primary bg-primary/5': challengeStore.getAnswer(question.id) === choice.id,
-              'border-border': challengeStore.getAnswer(question.id) !== choice.id
+              'border-primary bg-primary/5 shadow-md': challengeStore.getAnswer(question.id) === choice.id,
+              'border-border hover:border-primary/50 hover:bg-muted/50': challengeStore.getAnswer(question.id) !== choice.id
             }"
           >
-            <input
-              type="radio"
-              :name="`question-${question.id}`"
-              :value="choice.id"
-              :checked="challengeStore.getAnswer(question.id) === choice.id"
-              @change="handleAnswerSelect(question.id, choice.id)"
-              class="mr-3"
-            />
-            <span>{{ choice.choice_text }}</span>
+            <div class="relative flex items-center mt-1">
+              <input
+                type="radio"
+                :name="`question-${question.id}`"
+                :value="choice.id"
+                :checked="challengeStore.getAnswer(question.id) === choice.id"
+                @change="handleAnswerSelect(question.id, choice.id)"
+                class="sr-only"
+              />
+              <div 
+                class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all"
+                :class="{
+                  'border-primary bg-primary': challengeStore.getAnswer(question.id) === choice.id,
+                  'border-muted-foreground group-hover:border-primary': challengeStore.getAnswer(question.id) !== choice.id
+                }"
+              >
+                <div 
+                  v-if="challengeStore.getAnswer(question.id) === choice.id"
+                  class="w-2 h-2 rounded-full bg-white animate-scale-bounce"
+                ></div>
+              </div>
+            </div>
+            
+            <div class="flex-1">
+              <div class="flex items-center gap-3">
+                <span class="font-medium text-muted-foreground text-sm">{{ String.fromCharCode(65 + choiceIndex) }}.</span>
+                <span class="text-base leading-relaxed">{{ choice.choice_text }}</span>
+              </div>
+            </div>
           </label>
         </div>
       </div>
 
       <!-- 送信ボタン -->
-      <div class="flex justify-center pt-6">
-        <Button
-          @click="handleSubmit"
-          :disabled="!challengeStore.isAnswersComplete || challengeStore.isSubmitting"
-          class="px-8"
-        >
-          <span v-if="challengeStore.isSubmitting" class="flex items-center gap-2">
-            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-            送信中...
-          </span>
-          <span v-else-if="!challengeStore.isAnswersComplete">
-            すべての質問に回答してください ({{ challengeStore.currentAnswerCount }}/{{ challengeStore.totalQuestions }})
-          </span>
-          <span v-else>
-            回答を送信
-          </span>
-        </Button>
+      <div class="flex justify-center pt-8">
+        <div class="text-center">
+          <div v-if="!challengeStore.isAnswersComplete" class="mb-4">
+            <p class="text-muted-foreground text-sm mb-2">
+              あと {{ challengeStore.totalQuestions - challengeStore.currentAnswerCount }} 問回答してください
+            </p>
+            <div class="flex justify-center gap-2">
+              <div 
+                v-for="n in challengeStore.totalQuestions" 
+                :key="n"
+                class="w-3 h-3 rounded-full transition-all duration-300"
+                :class="{
+                  'bg-primary': n <= challengeStore.currentAnswerCount,
+                  'bg-muted': n > challengeStore.currentAnswerCount
+                }"
+              ></div>
+            </div>
+          </div>
+          
+          <Button
+            @click="handleSubmit"
+            :disabled="!challengeStore.isAnswersComplete || challengeStore.isSubmitting"
+            size="lg"
+            class="px-12 bg-gradient-primary hover:opacity-90 font-semibold hover-lift button-press"
+          >
+            <span v-if="challengeStore.isSubmitting" class="flex items-center gap-3">
+              <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              送信中...
+            </span>
+            <span v-else-if="!challengeStore.isAnswersComplete">
+              すべて回答してから送信
+            </span>
+            <span v-else class="flex items-center gap-2">
+              <Send class="size-4" />
+              回答を送信
+            </span>
+          </Button>
+        </div>
       </div>
     </div>
 
@@ -125,7 +210,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft } from 'lucide-vue-next';
+import { ArrowLeft, CheckCircle, Circle, Clock, Send } from 'lucide-vue-next';
 import { useChallengeStore } from '@/stores/challenge.store';
 import ErrorMessage from '@/components/common/ErrorMessage.vue';
 import QuizResultDialog from '@/components/QuizResultDialog.vue';

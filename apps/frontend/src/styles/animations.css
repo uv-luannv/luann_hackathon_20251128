@@ -1,11 +1,8 @@
-/* Animation Styles - Tailwind CSS v4 */
+/* Enhanced Animation Styles - Tailwind CSS v4 */
 
 /* Vue Transition Classes - UserList.vueで使用 */
-/*
- * Vueのトランジションシステムで必要なため保持
- * Tailwindクラスで部分的に置き換え済み
- */
 @layer utilities {
+  /* Existing list transitions */
   .list-enter-active,
   .list-leave-active {
     @apply transition-all duration-300 ease-in-out;
@@ -18,5 +15,160 @@
 
   .list-move {
     @apply transition-transform duration-300 ease-in-out;
+  }
+
+  /* Card animations */
+  .card-enter-active {
+    @apply transition-all duration-500 ease-out;
+  }
+
+  .card-enter-from {
+    @apply opacity-0 translate-y-8 scale-95;
+  }
+
+  .card-enter-to {
+    @apply opacity-100 translate-y-0 scale-100;
+  }
+
+  /* Floating animations */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Pulse glow effect */
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 5px rgba(139, 92, 246, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+    }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  /* Gradient shift animation */
+  @keyframes gradient-shift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .animate-gradient {
+    background: linear-gradient(-45deg, 
+      oklch(var(--primary)), 
+      oklch(var(--accent)), 
+      oklch(var(--primary)), 
+      oklch(var(--accent))
+    );
+    background-size: 400% 400%;
+    animation: gradient-shift 4s ease infinite;
+  }
+
+  /* Slide up animation */
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.6s ease-out;
+  }
+
+  /* Scale bounce effect */
+  @keyframes scale-bounce {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }
+
+  .animate-scale-bounce {
+    animation: scale-bounce 0.4s ease;
+  }
+
+  /* Shimmer effect for loading */
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .animate-shimmer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
+    animation: shimmer 2s infinite;
+  }
+
+  /* Enhanced hover effects */
+  .hover-lift {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Button press effect */
+  .button-press {
+    transition: all 0.1s ease;
+  }
+
+  .button-press:active {
+    transform: scale(0.95);
+  }
+
+  /* Stagger animation delays */
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.2s; }
+  .stagger-3 { animation-delay: 0.3s; }
+  .stagger-4 { animation-delay: 0.4s; }
+  .stagger-5 { animation-delay: 0.5s; }
+
+  /* Loading skeleton */
+  .skeleton {
+    background: linear-gradient(90deg, 
+      oklch(var(--muted)) 25%, 
+      oklch(var(--muted-foreground) / 0.1) 50%, 
+      oklch(var(--muted)) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
   }
 }
