@@ -12,10 +12,11 @@
             <div class="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center">
               <span class="text-white font-bold text-lg">Q</span>
             </div>
-            <h1 class="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">クイズセット編集</h1>
+            <h1 class="text-2xl font-bold text-foreground">クイズセット編集</h1>
           </div>
           <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2 text-sm text-muted-foreground bg-white/50 px-3 py-1 rounded-full">
+            <DarkModeToggle />
+            <div class="flex items-center gap-2 text-sm text-muted-foreground bg-white/50 dark:bg-black/30 px-3 py-1 rounded-full">
               <div class="w-6 h-6 bg-gradient-primary rounded-full flex items-center justify-center">
                 <span class="text-white text-xs font-bold">{{ (authStore.currentUser?.name || 'G')[0] }}</span>
               </div>
@@ -182,6 +183,9 @@ import {
   Globe,
   Trash2
 } from 'lucide-vue-next';
+
+// Components
+import DarkModeToggle from '@/components/DarkModeToggle.vue';
 
 // Setup
 const route = useRoute();

@@ -1,17 +1,25 @@
 <template>
-  <div class="container max-w-6xl mx-auto p-6">
-    <!-- ヘッダー -->
-    <div class="mb-6">
-      <div class="flex items-center gap-3">
-        <History class="size-8 text-blue-500" />
-        <div>
-          <h1 class="text-2xl font-bold">スコア履歴</h1>
-          <p class="text-muted-foreground">
-            あなたのクイズチャレンジの記録
-          </p>
+  <div class="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
+    <!-- ヘッダーナビゲーション -->
+    <div class="sticky top-0 z-10 backdrop-blur-md bg-background/80 border-b">
+      <div class="container max-w-6xl mx-auto px-6 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <History class="size-8 text-blue-500" />
+            <h1 class="text-2xl font-bold text-foreground">スコア履歴</h1>
+          </div>
+          <div class="flex items-center gap-4">
+            <DarkModeToggle />
+            <div class="flex items-center gap-2 text-sm text-muted-foreground bg-white/50 dark:bg-black/30 px-3 py-1 rounded-full">
+              <User class="size-4" />
+              <span>{{ authStore.currentUser?.name ?? 'ゲスト' }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+
+    <div class="container max-w-6xl mx-auto p-6">
 
     <!-- エラーメッセージ -->
     <ErrorMessage 
@@ -194,6 +202,7 @@
         クイズ一覧へ
       </Button>
     </div>
+    </div>
   </div>
 </template>
 
@@ -207,13 +216,17 @@ import {
   Star,
   Eye,
   RotateCcw,
-  PlayCircle
+  PlayCircle,
+  User
 } from 'lucide-vue-next';
 import { useChallengeStore } from '@/stores/challenge.store';
+import { useAuthStore } from '@/stores/auth.store';
 import ErrorMessage from '@/components/common/ErrorMessage.vue';
+import DarkModeToggle from '@/components/DarkModeToggle.vue';
 
 const router = useRouter();
 const challengeStore = useChallengeStore();
+const authStore = useAuthStore();
 
 // フィルター・ソート設定
 const sortOrder = ref<'newest' | 'oldest' | 'highest' | 'lowest'>('newest');
