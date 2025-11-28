@@ -1,10 +1,12 @@
 import { OpenAPIHono, createRoute } from '@hono/zod-openapi';
 import { db } from '../db/connection.js';
-import { verifyPassword, generateJWT } from '../utils/auth.js';
+import { verifyPassword, generateJWT, hashPassword } from '../utils/auth.js';
 import { authMiddleware } from '../middleware/auth.js';
 import {
   LoginRequestSchema,
   LoginResponseSchema,
+  RegisterRequestSchema,
+  RegisterResponseSchema,
   LogoutResponseSchema,
   SessionResponseSchema,
   AuthErrorResponseSchema
@@ -12,9 +14,107 @@ import {
 import { ErrorResponseSchema } from '../schemas/common.js';
 
 export const storeAuthApi = (app: OpenAPIHono) => {
+  storeRegisterRoute(app);
   storeLoginRoute(app);
   storeLogoutRoute(app);
   storeSessionRoute(app);
+};
+
+const storeRegisterRoute = (app: OpenAPIHono) => {
+  // POST /api/auth/register ルート定義
+  const registerRoute = createRoute({
+    method: 'post',
+    path: '/api/auth/register',
+    request: {
+      body: {
+        content: { 'application/json': { schema: RegisterRequestSchema } }
+      }
+    },
+    responses: {
+      201: {
+        content: { 'application/json': { schema: RegisterResponseSchema } },
+        description: 'ユーザー登録成功'
+      },
+      400: {
+        content: { 'application/json': { schema: AuthErrorResponseSchema } },
+        description: 'バリデーションエラーまたは重複エラー'
+      },
+      500: {
+        content: { 'application/json': { schema: ErrorResponseSchema } },
+        description: 'サーバーエラー'
+      }
+    }
+  });
+
+  // POST /api/auth/register エンドポイント実装
+  app.openapi(registerRoute, async (c) => {
+    try {
+      const body = c.req.valid('json');
+      const { username, email, password } = body;
+
+      // Check if user already exists
+      const existingUser = await db
+        .selectFrom('users')
+        .select('id')
+        .where('email', '=', email)
+        .executeTakeFirst();
+
+      if (existingUser) {
+        return c.json({
+          success: false,
+          message: 'このメールアドレスは既に登録されています',
+          error: 'このメールアドレスは既に登録されています'
+        }, 400);
+      }
+
+      // Hash the password
+      const passwordHash = await hashPassword(password);
+
+      // Create the new user
+      const newUser = await db
+        .insertInto('users')
+        .values({
+          name: username,
+          email: email,
+          password_hash: passwordHash,
+          active: true,
+          created_at: new Date(),
+          updated_at: new Date()
+        })
+        .returning(['id', 'name', 'email'])
+        .executeTakeFirst();
+
+      if (!newUser) {
+        return c.json({
+          success: false,
+          message: 'ユーザーの作成に失敗しました',
+          error: 'ユーザーの作成に失敗しました'
+        }, 500);
+      }
+
+      // Generate JWT
+      const token = await generateJWT({ userId: newUser.id, email: newUser.email });
+
+      return c.json({
+        success: true,
+        data: {
+          token,
+          user: {
+            id: newUser.id,
+            name: newUser.name,
+            email: newUser.email
+          }
+        }
+      }, 201);
+    } catch (error) {
+      console.error('Registration error:', error);
+      return c.json({
+        success: false,
+        message: 'Internal server error',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }, 500);
+    }
+  });
 };
 
 const storeLoginRoute = (app: OpenAPIHono) => {
@@ -64,6 +164,7 @@ const storeLoginRoute = (app: OpenAPIHono) => {
       if (!user || !user.password_hash) {
         return c.json({
           success: false,
+          message: 'Invalid email or password',
           error: 'Invalid email or password'
         }, 401);
       }
@@ -73,6 +174,7 @@ const storeLoginRoute = (app: OpenAPIHono) => {
       if (!isValidPassword) {
         return c.json({
           success: false,
+          message: 'Invalid email or password',
           error: 'Invalid email or password'
         }, 401);
       }

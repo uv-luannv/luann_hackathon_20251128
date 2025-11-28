@@ -18,11 +18,11 @@ export const UploadUrlRequestSchema = z.object({
   filename: z.string().min(1, 'ファイル名は必須です').max(255),
   content_type: z.enum([
     'image/jpeg',
-    'image/png',
+    'image/png', 
     'image/gif',
     'image/webp'
   ], {
-    errorMap: () => ({ message: 'サポートされていない画像形式です' })
+    message: 'サポートされていない画像形式です'
   }),
   size: z.number().positive().max(10 * 1024 * 1024, 'ファイルサイズは10MB以下にしてください')
 }).openapi('UploadUrlRequest');

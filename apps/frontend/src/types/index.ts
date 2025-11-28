@@ -32,6 +32,7 @@ export type {
 // 認証関連の型
 export type {
   LoginCredentials,
+  RegisterRequest,
   AuthError,
   AuthState
 } from './auth.types';

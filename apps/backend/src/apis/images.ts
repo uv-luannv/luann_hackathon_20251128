@@ -10,7 +10,7 @@ import {
 } from '../schemas/images.js';
 import { ErrorResponseSchema } from '../schemas/common.js';
 import { db } from '../db/connection.js';
-import type { Image } from '../db/generated-types.js';
+import type { Images as Image } from '../db/generated-types.js';
 import {
   generateUploadUrl,
   generateDownloadUrl,

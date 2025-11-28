@@ -8,6 +8,12 @@ const LoginView = () => import(
   '@/views/LoginView.vue'
 );
 
+const RegisterView = () => import(
+  /* webpackChunkName: "register" */
+  /* webpackPrefetch: true */
+  '@/views/RegisterView.vue'
+);
+
 const ItemsView = () => import(
   /* webpackChunkName: "items" */
   /* webpackPrefetch: true */
@@ -26,6 +32,30 @@ const QuizView = () => import(
   '@/views/QuizView.vue'
 );
 
+const QuizSetDetailView = () => import(
+  /* webpackChunkName: "quiz-detail" */
+  /* webpackPrefetch: true */
+  '@/views/QuizSetDetailView.vue'
+);
+
+const QuizSetEditView = () => import(
+  /* webpackChunkName: "quiz-edit" */
+  /* webpackPrefetch: true */
+  '@/views/QuizSetEditView.vue'
+);
+
+const QuizChallengeView = () => import(
+  /* webpackChunkName: "quiz-challenge" */
+  /* webpackPrefetch: true */
+  '@/components/QuizChallengeView.vue'
+);
+
+const MyScoresView = () => import(
+  /* webpackChunkName: "my-scores" */
+  /* webpackPrefetch: true */
+  '@/views/MyScoresView.vue'
+);
+
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
@@ -38,6 +68,15 @@ const routes: RouteRecordRaw[] = [
     meta: {
       requiresGuest: true,
       title: 'ログイン'
+    }
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: RegisterView,
+    meta: {
+      requiresGuest: true,
+      title: 'ユーザー登録'
     }
   },
   {
@@ -65,6 +104,42 @@ const routes: RouteRecordRaw[] = [
     meta: {
       requiresAuth: true,
       title: 'クイズ管理'
+    }
+  },
+  {
+    path: '/quiz-sets/:id',
+    name: 'QuizSetDetail',
+    component: QuizSetDetailView,
+    meta: {
+      requiresAuth: false,
+      title: 'クイズセット詳細'
+    }
+  },
+  {
+    path: '/quiz-sets/:id/edit',
+    name: 'QuizSetEdit',
+    component: QuizSetEditView,
+    meta: {
+      requiresAuth: true,
+      title: 'クイズセット編集'
+    }
+  },
+  {
+    path: '/quiz-sets/:id/challenge',
+    name: 'QuizChallenge',
+    component: QuizChallengeView,
+    meta: {
+      requiresAuth: true,
+      title: 'クイズチャレンジ'
+    }
+  },
+  {
+    path: '/my-scores',
+    name: 'MyScores',
+    component: MyScoresView,
+    meta: {
+      requiresAuth: true,
+      title: 'マイスコア'
     }
   },
   {

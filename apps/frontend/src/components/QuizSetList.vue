@@ -170,7 +170,7 @@
               <div class="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center">
                 <User class="size-4 text-white" />
               </div>
-              <span class="text-sm font-medium">{{ quizSet.author_name || 'Unknown' }}</span>
+              <span class="text-sm font-medium">{{ quizSet.author_id || 'Unknown' }}</span>
             </div>
             
             <Button 

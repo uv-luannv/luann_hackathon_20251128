@@ -282,7 +282,7 @@ export const useChallengeStore = defineStore('challenge', () => {
   /**
    * ユーザーのスコア履歴を取得する
    */
-  async function getMyScores(): Promise<ScoreHistory> {
+  async function fetchMyScores(): Promise<ScoreHistory> {
     try {
       isLoading.value = true;
       error.value = null;
@@ -307,6 +307,13 @@ export const useChallengeStore = defineStore('challenge', () => {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /**
+   * ユーザーのスコア履歴を取得する（エイリアス）
+   */
+  async function getMyScores(): Promise<ScoreHistory> {
+    return fetchMyScores();
   }
 
   // Utility actions
@@ -380,6 +387,7 @@ export const useChallengeStore = defineStore('challenge', () => {
     getChallengeResult,
     getQuizSetRanking,
     getRanking,
+    fetchMyScores,
     getMyScores,
     clearError,
     clearLatestResult,

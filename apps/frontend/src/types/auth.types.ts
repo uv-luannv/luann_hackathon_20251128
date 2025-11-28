@@ -7,6 +7,15 @@ export interface LoginCredentials {
 }
 
 /**
+ * ユーザー登録情報
+ */
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+}
+
+/**
  * 認証エラー
  */
 export interface AuthError {

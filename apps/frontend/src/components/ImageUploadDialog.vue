@@ -115,7 +115,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, watch } from 'vue';
 import {
   Dialog,
   DialogContent,
@@ -136,7 +136,7 @@ interface Emits {
   (e: 'close'): void;
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 const fileInput = ref<HTMLInputElement | null>(null);

@@ -98,6 +98,15 @@
                 ログイン
               </template>
             </Button>
+
+            <div class="text-center">
+              <router-link
+                to="/register"
+                class="text-sm text-primary hover:text-primary/90 underline"
+              >
+                新規ユーザー登録はこちら
+              </router-link>
+            </div>
           </form>
         </CardContent>
       </Card>

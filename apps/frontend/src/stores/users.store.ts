@@ -120,7 +120,7 @@ export const useUsersStore = defineStore('users', () => {
       });
 
       // ローカルステートを更新
-      const userIndex = users.value.findIndex(user => user.id === id);
+      const userIndex = users.value.findIndex(user => user.id === parseInt(id));
       if (userIndex !== -1) {
         users.value[userIndex] = updatedUser;
       }
@@ -152,7 +152,7 @@ export const useUsersStore = defineStore('users', () => {
       await usersService.deleteUser(id);
 
       // ローカルステートから削除
-      const userIndex = users.value.findIndex(user => user.id === id);
+      const userIndex = users.value.findIndex(user => user.id === parseInt(id));
       if (userIndex !== -1) {
         users.value.splice(userIndex, 1);
       }
@@ -180,7 +180,7 @@ export const useUsersStore = defineStore('users', () => {
    * @returns User | undefined
    */
   function getUserById(id: string): User | undefined {
-    return users.value.find(user => user.id === id);
+    return users.value.find(user => user.id === parseInt(id));
   }
 
   /**
