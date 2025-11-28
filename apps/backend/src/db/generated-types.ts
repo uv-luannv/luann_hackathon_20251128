@@ -13,6 +13,13 @@ export type Int8 = ColumnType<string, bigint | number | string, bigint | number 
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
+export interface Choices {
+  choice_text: string;
+  id: Generated<number>;
+  is_correct: boolean;
+  question_id: number;
+}
+
 export interface Images {
   created_at: Generated<Timestamp>;
   file_key: string;
@@ -31,6 +38,25 @@ export interface Items {
   updated_at: Generated<Timestamp>;
 }
 
+export interface Questions {
+  created_at: Generated<Timestamp>;
+  id: Generated<number>;
+  question_text: string;
+  quiz_set_id: number;
+  updated_at: Generated<Timestamp>;
+}
+
+export interface QuizSets {
+  author_id: number;
+  category: string | null;
+  created_at: Generated<Timestamp>;
+  description: string | null;
+  id: Generated<number>;
+  is_public: Generated<boolean>;
+  title: string;
+  updated_at: Generated<Timestamp>;
+}
+
 export interface Users {
   active: Generated<boolean>;
   created_at: Generated<Timestamp>;
@@ -42,7 +68,10 @@ export interface Users {
 }
 
 export interface DB {
+  choices: Choices;
   images: Images;
   items: Items;
+  questions: Questions;
+  quiz_sets: QuizSets;
   users: Users;
 }

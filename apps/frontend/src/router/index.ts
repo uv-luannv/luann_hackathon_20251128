@@ -20,10 +20,16 @@ const ImagesView = () => import(
   '@/views/ImagesView.vue'
 );
 
+const QuizView = () => import(
+  /* webpackChunkName: "quiz" */
+  /* webpackPrefetch: true */
+  '@/views/QuizView.vue'
+);
+
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: '/login'
+    redirect: '/quiz'
   },
   {
     path: '/login',
@@ -50,6 +56,15 @@ const routes: RouteRecordRaw[] = [
     meta: {
       requiresAuth: true,
       title: '画像管理'
+    }
+  },
+  {
+    path: '/quiz',
+    name: 'Quiz',
+    component: QuizView,
+    meta: {
+      requiresAuth: true,
+      title: 'クイズ管理'
     }
   },
   {
@@ -91,7 +106,7 @@ router.beforeEach(async (to, _from, next) => {
 
   // ゲスト専用ルートのガード（ログイン済みユーザーがログインページにアクセスするのを防ぐ）
   if (to.meta.requiresGuest && isLoggedIn) {
-    next('/items');
+    next('/quiz');
     return;
   }
 
