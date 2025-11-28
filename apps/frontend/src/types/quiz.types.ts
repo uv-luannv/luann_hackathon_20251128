@@ -6,6 +6,8 @@ export interface QuizSet {
   category: string | null;
   is_public: boolean;
   author_id: string;
+  average_rating: number | null;
+  rating_count: number;
   created_at: string;
   updated_at: string;
 }

@@ -50,28 +50,41 @@ const storeGetQuizSetsRoute = (app: OpenAPIHono) => {
     try {
       let dbQuery = db
         .selectFrom('quiz_sets')
-        .select(['id', 'title', 'description', 'category', 'is_public', 'author_id', 'created_at', 'updated_at']);
+        .leftJoin('ratings', 'ratings.quiz_set_id', 'quiz_sets.id')
+        .select([
+          'quiz_sets.id',
+          'quiz_sets.title', 
+          'quiz_sets.description', 
+          'quiz_sets.category', 
+          'quiz_sets.is_public', 
+          'quiz_sets.author_id', 
+          'quiz_sets.created_at', 
+          'quiz_sets.updated_at',
+          (eb) => eb.fn.avg('ratings.rating').as('average_rating'),
+          (eb) => eb.fn.count('ratings.id').as('rating_count')
+        ])
+        .groupBy(['quiz_sets.id', 'quiz_sets.title', 'quiz_sets.description', 'quiz_sets.category', 'quiz_sets.is_public', 'quiz_sets.author_id', 'quiz_sets.created_at', 'quiz_sets.updated_at']);
 
       // 公開クイズまたは自分が作成したクイズのみを表示
       dbQuery = dbQuery.where((eb) => 
         eb.or([
-          eb('is_public', '=', true),
-          eb('author_id', '=', user.id)
+          eb('quiz_sets.is_public', '=', true),
+          eb('quiz_sets.author_id', '=', user.id)
         ])
       );
 
       // カテゴリフィルタ
       if (query.category) {
-        dbQuery = dbQuery.where('category', '=', query.category);
+        dbQuery = dbQuery.where('quiz_sets.category', '=', query.category);
       }
 
       // 作成者フィルタ
       if (query.author_id) {
-        dbQuery = dbQuery.where('author_id', '=', parseInt(query.author_id));
+        dbQuery = dbQuery.where('quiz_sets.author_id', '=', parseInt(query.author_id));
       }
 
       const quizSets = await dbQuery
-        .orderBy('created_at', 'desc')
+        .orderBy('quiz_sets.created_at', 'desc')
         .execute();
 
       const formattedQuizSets = quizSets.map(quizSet => ({
@@ -81,6 +94,8 @@ const storeGetQuizSetsRoute = (app: OpenAPIHono) => {
         category: quizSet.category,
         is_public: quizSet.is_public,
         author_id: quizSet.author_id.toString(),
+        average_rating: quizSet.average_rating ? Number(Number(quizSet.average_rating).toFixed(1)) : null,
+        rating_count: Number(quizSet.rating_count),
         created_at: quizSet.created_at.toISOString(),
         updated_at: quizSet.updated_at.toISOString()
       }));
@@ -129,13 +144,26 @@ const storeGetQuizSetRoute = (app: OpenAPIHono) => {
     const user = (c as any).get('user');
 
     try {
-      const quizSet = await db
+      const quizSetResult = await db
         .selectFrom('quiz_sets')
-        .select(['id', 'title', 'description', 'category', 'is_public', 'author_id', 'created_at', 'updated_at'])
-        .where('id', '=', parseInt(id))
+        .leftJoin('ratings', 'ratings.quiz_set_id', 'quiz_sets.id')
+        .select([
+          'quiz_sets.id', 
+          'quiz_sets.title', 
+          'quiz_sets.description', 
+          'quiz_sets.category', 
+          'quiz_sets.is_public', 
+          'quiz_sets.author_id', 
+          'quiz_sets.created_at', 
+          'quiz_sets.updated_at',
+          (eb) => eb.fn.avg('ratings.rating').as('average_rating'),
+          (eb) => eb.fn.count('ratings.id').as('rating_count')
+        ])
+        .where('quiz_sets.id', '=', parseInt(id))
+        .groupBy(['quiz_sets.id', 'quiz_sets.title', 'quiz_sets.description', 'quiz_sets.category', 'quiz_sets.is_public', 'quiz_sets.author_id', 'quiz_sets.created_at', 'quiz_sets.updated_at'])
         .executeTakeFirst();
 
-      if (!quizSet) {
+      if (!quizSetResult) {
         return c.json({
           success: false,
           message: 'Quiz set not found'
@@ -143,7 +171,7 @@ const storeGetQuizSetRoute = (app: OpenAPIHono) => {
       }
 
       // アクセス権限チェック（公開されているか自分が作成者）
-      if (!quizSet.is_public && quizSet.author_id !== user.id) {
+      if (!quizSetResult.is_public && quizSetResult.author_id !== user.id) {
         return c.json({
           success: false,
           message: 'Access denied'
@@ -151,14 +179,16 @@ const storeGetQuizSetRoute = (app: OpenAPIHono) => {
       }
 
       return c.json({
-        id: quizSet.id.toString(),
-        title: quizSet.title,
-        description: quizSet.description,
-        category: quizSet.category,
-        is_public: quizSet.is_public,
-        author_id: quizSet.author_id.toString(),
-        created_at: quizSet.created_at.toISOString(),
-        updated_at: quizSet.updated_at.toISOString()
+        id: quizSetResult.id.toString(),
+        title: quizSetResult.title,
+        description: quizSetResult.description,
+        category: quizSetResult.category,
+        is_public: quizSetResult.is_public,
+        author_id: quizSetResult.author_id.toString(),
+        average_rating: quizSetResult.average_rating ? Number(Number(quizSetResult.average_rating).toFixed(1)) : null,
+        rating_count: Number(quizSetResult.rating_count),
+        created_at: quizSetResult.created_at.toISOString(),
+        updated_at: quizSetResult.updated_at.toISOString()
       }, 200);
     } catch (error) {
       console.error('Database error:', error);
@@ -222,6 +252,8 @@ const storeCreateQuizSetRoute = (app: OpenAPIHono) => {
         category: newQuizSet.category,
         is_public: newQuizSet.is_public,
         author_id: newQuizSet.author_id.toString(),
+        average_rating: null,
+        rating_count: 0,
         created_at: newQuizSet.created_at.toISOString(),
         updated_at: newQuizSet.updated_at.toISOString()
       }, 201);
@@ -319,6 +351,8 @@ const storeUpdateQuizSetRoute = (app: OpenAPIHono) => {
         category: updatedQuizSet.category,
         is_public: updatedQuizSet.is_public,
         author_id: updatedQuizSet.author_id.toString(),
+        average_rating: null,
+        rating_count: 0,
         created_at: updatedQuizSet.created_at.toISOString(),
         updated_at: updatedQuizSet.updated_at.toISOString()
       }, 200);
@@ -416,6 +450,8 @@ const storeTogglePublishRoute = (app: OpenAPIHono) => {
         category: updatedQuizSet.category,
         is_public: updatedQuizSet.is_public,
         author_id: updatedQuizSet.author_id.toString(),
+        average_rating: null,
+        rating_count: 0,
         created_at: updatedQuizSet.created_at.toISOString(),
         updated_at: updatedQuizSet.updated_at.toISOString()
       }, 200);

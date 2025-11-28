@@ -73,6 +73,15 @@ export interface QuizSets {
   updated_at: Generated<Timestamp>;
 }
 
+export interface Ratings {
+  created_at: Generated<Timestamp>;
+  id: Generated<number>;
+  quiz_set_id: number;
+  rating: number;
+  updated_at: Generated<Timestamp>;
+  user_id: number;
+}
+
 export interface Users {
   active: Generated<boolean>;
   created_at: Generated<Timestamp>;
@@ -91,5 +100,6 @@ export interface DB {
   items: Items;
   questions: Questions;
   quiz_sets: QuizSets;
+  ratings: Ratings;
   users: Users;
 }

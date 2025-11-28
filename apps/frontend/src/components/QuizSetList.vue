@@ -84,6 +84,19 @@
             {{ quizSet.description }}
           </p>
 
+          <!-- レーティング -->
+          <div class="mb-4">
+            <StarRating
+              :value="quizSet.average_rating"
+              :rating-count="quizSet.rating_count"
+              :show-count="true"
+              :readonly="authStore.currentUser?.id?.toString() === quizSet.author_id"
+              :is-own="authStore.currentUser?.id?.toString() === quizSet.author_id"
+              :quiz-set-id="quizSet.id"
+              @submit="(rating) => handleRatingSubmit(quizSet.id, rating)"
+            />
+          </div>
+
           <!-- フッター -->
           <div class="flex items-center justify-between text-xs text-muted-foreground mt-auto">
             <span>{{ formatDate(quizSet.created_at) }}</span>
@@ -146,6 +159,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuizStore } from '@/stores/quiz.store';
+import { useAuthStore } from '@/stores/auth.store';
 import type { QuizSet } from '@/types';
 
 // UI components
@@ -155,6 +169,7 @@ import { Badge } from '@/components/ui/badge';
 import ErrorMessage from '@/components/common/ErrorMessage.vue';
 import QuizSetCreateDialog from './QuizSetCreateDialog.vue';
 import QuizSetEditDialog from './QuizSetEditDialog.vue';
+import StarRating from './StarRating.vue';
 
 // Icons
 import { 
@@ -169,6 +184,7 @@ import {
 // State
 const router = useRouter();
 const quizStore = useQuizStore();
+const authStore = useAuthStore();
 
 const showCreateDialog = ref(false);
 const showEditDialog = ref(false);
@@ -197,6 +213,14 @@ const handleEditQuizSet = (quizSet: QuizSet) => {
 
 const handleTakeQuiz = (id: string) => {
   router.push(`/quiz-sets/${id}/challenge`);
+};
+
+const handleRatingSubmit = async (quizSetId: string, rating: number) => {
+  try {
+    await quizStore.submitRating(quizSetId, rating);
+  } catch (error) {
+    // エラーはストアで処理される
+  }
 };
 
 const handleTogglePublish = async (quizSet: QuizSet) => {

@@ -7,10 +7,12 @@ import type {
   QuizSetQueryParams,
   Question,
   CreateQuestionRequest,
-  UpdateQuestionRequest
+  UpdateQuestionRequest,
+  Rating
 } from '@/types';
 import * as quizService from '@/services/quiz.service';
 import * as questionService from '@/services/question.service';
+import * as ratingService from '@/services/rating.service';
 import { ApiError } from '@/services/api';
 import { useAuthStore } from './auth.store';
 
@@ -423,6 +425,32 @@ export const useQuizStore = defineStore('quiz', () => {
     questions.value = [];
   }
 
+  /**
+   * クイズセットにレーティングを送信
+   */
+  async function submitRating(quizSetId: string, rating: number): Promise<Rating> {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const ratingResult = await ratingService.submitRating(quizSetId, rating);
+      
+      // 一覧から対象のクイズセットを再取得して更新
+      await fetchQuizSets();
+      
+      return ratingResult;
+    } catch (err: any) {
+      if (err instanceof ApiError && err.status === 401) {
+        authStore.handleAuthError();
+        throw err;
+      }
+      error.value = err.message || 'レーティングの送信に失敗しました。';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   return {
     // State
     quizSets,
@@ -461,6 +489,7 @@ export const useQuizStore = defineStore('quiz', () => {
     setCategoryFilter,
     setCurrentPage,
     clearError,
-    clearCurrentQuizSet
+    clearCurrentQuizSet,
+    submitRating
   };
 });

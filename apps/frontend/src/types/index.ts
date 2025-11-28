@@ -70,6 +70,12 @@ export type {
   ChallengeState
 } from './challenge.types';
 
+// レーティング関連の型
+export type {
+  Rating,
+  SubmitRatingRequest
+} from './rating.types';
+
 // API関連の型
 export type {
   ApiResponse,

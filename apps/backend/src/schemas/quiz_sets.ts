@@ -8,6 +8,8 @@ export const QuizSetSchema = z.object({
   category: z.string().nullable().openapi({ example: 'プログラミング' }),
   is_public: z.boolean().openapi({ example: true }),
   author_id: z.string().openapi({ example: '1' }),
+  average_rating: z.number().nullable().openapi({ example: 4.2 }),
+  rating_count: z.number().openapi({ example: 25 }),
   created_at: z.string().datetime().openapi({ example: '2024-01-01T00:00:00Z' }),
   updated_at: z.string().datetime().openapi({ example: '2024-01-01T00:00:00Z' })
 }).openapi('QuizSet')
