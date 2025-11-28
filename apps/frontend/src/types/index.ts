@@ -54,6 +54,22 @@ export type {
   UpdateQuestionRequest
 } from './question.types';
 
+// チャレンジ関連の型
+export type {
+  Challenge,
+  ChallengeAnswer,
+  ChallengeQuestion,
+  ChallengeResultQuestion,
+  StartChallenge,
+  SubmitChallengeRequest,
+  ChallengeResult,
+  RankingEntry,
+  Ranking,
+  ScoreHistoryEntry,
+  ScoreHistory,
+  ChallengeState
+} from './challenge.types';
+
 // API関連の型
 export type {
   ApiResponse,

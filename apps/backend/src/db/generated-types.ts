@@ -13,6 +13,22 @@ export type Int8 = ColumnType<string, bigint | number | string, bigint | number 
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
+export interface ChallengeAnswers {
+  challenge_id: number;
+  choice_id: number;
+  id: Generated<number>;
+  question_id: number;
+}
+
+export interface Challenges {
+  created_at: Generated<Timestamp>;
+  id: Generated<number>;
+  is_first_attempt: boolean;
+  quiz_set_id: number;
+  score: number;
+  user_id: number;
+}
+
 export interface Choices {
   choice_text: string;
   id: Generated<number>;
@@ -68,6 +84,8 @@ export interface Users {
 }
 
 export interface DB {
+  challenge_answers: ChallengeAnswers;
+  challenges: Challenges;
   choices: Choices;
   images: Images;
   items: Items;
