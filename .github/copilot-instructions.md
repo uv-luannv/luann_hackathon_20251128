@@ -16,15 +16,19 @@
 - API Pattern: `export const store[Entity]Api = (app: OpenAPIHono)`
 - Route Definition: `createRoute` from `@hono/zod-openapi`
 - Handler: `app.openapi(route, handler)`
+- Auth Middleware: `app.use('/api/[entity]/*', authMiddleware)`
 - Response Format: Convert IDs to strings, use `{ success: false, message: string }`
 - Queries: `executeTakeFirst()` for single, `execute()` for multiple
+- Imports: Include auth middleware, schemas, db connection
 
 **Frontend (Vue 3):**
 
 - Pattern: `<script setup>` with Composition API
 - HTTP Client: `api` instance from `@/services/api.ts`
-- State: `ref()` for reactive data
+- State: `ref()` for reactive data, Pinia stores for global state
 - Error Handling: try/catch blocks
+- Imports: Use existing stores, TypeScript types
+- UI: Follow existing component patterns with shadcn/ui components
 
 ## 🚀 Development Workflow
 
@@ -53,9 +57,11 @@ read_file apps/backend/src/db/generated-types.ts
 
 3. **API Routes** (`apps/backend/src/apis/tasks.ts`):
 
+   - Add auth middleware: `app.use('/api/tasks/*', authMiddleware)`
    - `POST /api/tasks` - Create task (validate title required)
    - `GET /api/tasks` - List tasks (optional status filter)
    - `PATCH /api/tasks/{id}` - Toggle completion status
+   - Function naming: `storeCreateTaskRoute`, `storeGetTasksRoute`, `storePatchTaskRoute`
 
 4. **Registration**:
    - Export from `apps/backend/src/apis/index.ts`
@@ -63,11 +69,13 @@ read_file apps/backend/src/db/generated-types.ts
 
 **Frontend Task Implementation:**
 
+- **Store** (`apps/frontend/src/stores/tasks.store.ts`): Create Pinia store for tasks
 - **Component** (`apps/frontend/src/components/TaskList.vue`):
+  - Import and use task store: `const tasksStore = useTasksStore()`
   - `fetchTasks()` function with `onMounted`
   - `toggleTaskStatus(id: string)` method
-  - Reactive `tasks: Ref<Task[]>` array
-  - Use existing `api` instance, not fetch
+  - Reactive `tasks` from store
+  - Follow existing patterns from ItemList.vue structure
 
 **Validation Commands:**
 
@@ -82,7 +90,12 @@ docker compose exec frontend npm run build
 **Integration Checklist:**
 
 - [ ] Migration file created with timestamp
-- [ ] Schema, API files created in correct paths
-- [ ] API exported and registered in app.ts
-- [ ] Component uses existing patterns
+- [ ] Schema file created in `apps/backend/src/schemas/tasks.ts`
+- [ ] API file created in `apps/backend/src/apis/tasks.ts`
+- [ ] API exported from `apps/backend/src/apis/index.ts`
+- [ ] API registered in `apps/backend/src/app.ts`
+- [ ] TypeScript types created in `apps/frontend/src/types/task.types.ts`
+- [ ] Service created in `apps/frontend/src/services/tasks.service.ts`
+- [ ] Pinia store created in `apps/frontend/src/stores/tasks.store.ts`
+- [ ] Component created in `apps/frontend/src/components/TaskList.vue`
 - [ ] All comments in Japanese
